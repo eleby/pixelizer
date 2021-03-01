@@ -1,6 +1,10 @@
 package main
 
 import (
+	"image"
+	"image/color/palette"
+	"image/draw"
+	"log"
 	"os"
 	"strconv"
 )
@@ -29,4 +33,20 @@ func hasParam(param string) bool {
 		}
 	}
 	return false
+}
+
+func printInTerminal(img image.Image, pointMin image.Point, pointMax image.Point, jump int) {
+	bounds := img.Bounds()
+	changedImage := image.NewPaletted(bounds, palette.Plan9)
+	draw.Draw(changedImage, changedImage.Rect, img, bounds.Min, draw.Src)
+	printedText := "\n"
+	for y := pointMin.Y; y < pointMax.Y; y += jump {
+		for x := pointMin.X; x < pointMax.X; x += jump {
+			colorA := changedImage.ColorIndexAt(x, y)
+			printedText += "\033[48;5;" + strconv.Itoa(int(colorA)) + "m  "
+		}
+		printedText += "\033[0;00m\n"
+	}
+	log.Print(printedText)
+	saveStr(printedText)
 }

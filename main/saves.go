@@ -12,6 +12,7 @@ import (
 
 const ResultName = "result"
 const SaveName = "log"
+const TerminalPrintName = "print.log"
 
 func save(min int, count int, increase int) {
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
@@ -24,6 +25,15 @@ func save(min int, count int, increase int) {
 	}
 	defer f.Close()
 	f.Write([]byte(os.Args[1] + ";" + strconv.Itoa(min) + ";" + strconv.Itoa(count) + ";" + strconv.Itoa(increase)))
+}
+
+func saveStr(str string) {
+	f, err := os.Create(TerminalPrintName)
+	if err != nil {
+		log.Print("Cannot create print save file")
+	}
+	defer f.Close()
+	f.Write([]byte(str))
 }
 
 func readAndGetParams() (string, int, int, int) {

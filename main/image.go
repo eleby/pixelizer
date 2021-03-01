@@ -46,11 +46,17 @@ func launchPixellisator(f *os.File, min int, count int, increase int) {
 		if hasParam("gif") {
 			addToGif(&gifImg, newImg)
 		}
+		if hasParam("print") {
+			printInTerminal(newImg, pointMin, pointMax, min+(i*increase))
+		}
 		if i+1 == count {
-			if hasParam("print") {
-				printInTerminal(newImg, pointMin, pointMax, min+(i*increase))
-			}
 			if hasParam("gif") {
+				if hasParam("reverse") {
+					reverseGif(&gifImg)
+				}
+				if hasParam("full") {
+					addReverseToGif(&gifImg)
+				}
 				gifOutput, errGif := os.Create("results.gif")
 				if errGif != nil {
 					log.Print("Cannot create gif image")
@@ -120,4 +126,19 @@ func addToGif(gifImg *gif.GIF, img image.Image) {
 	draw.Draw(palettedImage, palettedImage.Rect, img, img.Bounds().Min, draw.Src)
 	gifImg.Image = append(gifImg.Image, palettedImage)
 	gifImg.Delay = append(gifImg.Delay, GifDelayEachFrame)
+}
+
+func addReverseToGif(gifImg *gif.GIF) {
+	for i := len(gifImg.Image) - 2; i > 0; i-- {
+		gifImg.Image = append(gifImg.Image, gifImg.Image[i])
+		gifImg.Delay = append(gifImg.Delay, GifDelayEachFrame)
+	}
+}
+
+func reverseGif(gifImg *gif.GIF) {
+	var images []*image.Paletted
+	for i := len(gifImg.Image) - 1; i >= 0; i-- {
+		images = append(images, gifImg.Image[i])
+	}
+	gifImg.Image = images
 }

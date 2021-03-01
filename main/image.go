@@ -3,11 +3,15 @@ package main
 import (
 	"image"
 	"image/color"
+	"image/color/palette"
+	"image/draw"
 	"image/png"
 	"log"
 	"os"
 	"strconv"
 )
+
+const MaxCharsWidthTerminal = 60
 
 func launchPixellisator(f *os.File, min int, count int, increase int) {
 	img, _, err := image.Decode(f)
@@ -37,6 +41,24 @@ func launchPixellisator(f *os.File, min int, count int, increase int) {
 		if err3 != nil {
 			log.Print("Cannot encode image")
 		}
+		if i+1 == count && hasParam("print") {
+			printInTerminal(newImg, pointMin, pointMax, min+(i*increase))
+		}
+	}
+}
+
+func printInTerminal(img image.Image, pointMin image.Point, pointMax image.Point, jump int) {
+	bounds := img.Bounds()
+	changedImage := image.NewPaletted(bounds, palette.Plan9)
+	draw.Draw(changedImage, changedImage.Rect, img, bounds.Min, draw.Src)
+	printedLine := ""
+	for y := pointMin.Y; y < pointMax.Y; y += jump {
+		printedLine = ""
+		for x := pointMin.X; x < pointMax.X; x += jump {
+			colorA := changedImage.ColorIndexAt(x, y)
+			printedLine += "\033[48;5;" + strconv.Itoa(int(colorA)) + "m  "
+		}
+		log.Print(printedLine + "\033[0;00m\n")
 	}
 }
 

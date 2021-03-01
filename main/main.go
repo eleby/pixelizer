@@ -5,7 +5,6 @@ import (
 	_ "image/png"
 	"log"
 	"os"
-	"strconv"
 )
 
 func main() {
@@ -41,21 +40,4 @@ func main() {
 		launchPixellisator(f, min, count, increase)
 		save(min, count, increase)
 	}
-}
-
-func param(index int) int {
-	var nb int
-	var err error
-	if len(os.Args) < (index + 1) {
-		return 1
-	}
-	if os.Args[index] != "" {
-		nb, err = strconv.Atoi(os.Args[index])
-		if err != nil {
-			log.Print("Cannot convert parameter " + string(index) + " to int")
-		}
-	} else {
-		nb = 1
-	}
-	return nb
 }

@@ -2,70 +2,50 @@ package main
 
 import (
 	"bufio"
-	"log"
 	"os"
-	"path"
-	"path/filepath"
-	"strconv"
 	"strings"
 )
 
 const ResultName = "result"
 const SaveName = "log"
-const TerminalPrintName = "print.log"
+const TerminalPrintName = "print"
 
-func save(min int, count int, increase int) {
-	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
-	if err != nil {
-		log.Print("Cannot find program directory")
-	}
-	f, err := os.Create(path.Join(path.Dir(dir), SaveName))
-	if err != nil {
-		log.Print("Cannot create save file")
-	}
+func save() {
+	logIfVerbose(DEBUG, "save")
+	f, errCreateFile := os.Create(SaveDir + SaveName)
+	logIfExists(errCreateFile)
 	defer f.Close()
-	f.Write([]byte(os.Args[1] + ";" + strconv.Itoa(min) + ";" + strconv.Itoa(count) + ";" + strconv.Itoa(increase)))
+	strSave := ""
+
+	for i := range os.Args {
+		strSave += os.Args[i]
+		if i < len(os.Args)-1 {
+			strSave += ";"
+		}
+	}
+	f.Write([]byte(strSave))
 }
 
-func saveStr(str string) {
-	f, err := os.Create(TerminalPrintName)
-	if err != nil {
-		log.Print("Cannot create print save file")
-	}
+func saveStr(str string, suffix string) {
+	logIfVerbose(DEBUG, "saveStr")
+	logIfVerbose(INFO, "Saving color codes to "+SaveDir+TerminalPrintName+suffix+".log")
+	f, errCreateFile := os.Create(SaveDir + "/" + TerminalPrintName + suffix + ".log")
+	logIfExists(errCreateFile)
 	defer f.Close()
 	f.Write([]byte(str))
 }
 
-func readAndGetParams() (string, int, int, int) {
-	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
-	if err != nil {
-		log.Panic("Cannot find the program directory.")
-	}
-	f, err := os.Open(path.Join(path.Dir(dir), SaveName))
-	if err != nil {
-		log.Panic("Cannot find the save file.")
-	}
+func readAndGetParams() {
+	logIfVerbose(DEBUG, "readAndGetParams")
+	f, errOpenSaveDir := os.Open(SaveDir + SaveName)
+	logIfExists(errOpenSaveDir)
 	scanner := bufio.NewScanner(f)
 	scanner.Scan()
 	strSaved := scanner.Text()
 	splitStr := strings.Split(strSaved, ";")
-	imgName := splitStr[0]
-	min := splitStr[1]
-	count := splitStr[2]
-	increase := splitStr[3]
 
-	resultMin, err := strconv.Atoi(min)
-	if err != nil {
-		resultMin = 1
+	os.Args = []string{}
+	for i := range splitStr {
+		os.Args = append(os.Args, splitStr[i])
 	}
-	resultCount, err := strconv.Atoi(count)
-	if err != nil {
-		resultCount = 1
-	}
-	resultIncrease, err := strconv.Atoi(increase)
-	if err != nil {
-		resultIncrease = 1
-	}
-
-	return imgName, resultMin, resultCount, resultIncrease
 }

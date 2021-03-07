@@ -3,34 +3,51 @@ package main
 import (
 	_ "image/jpeg"
 	_ "image/png"
-	"log"
 	"os"
 )
 
+var WorkingDirectory string
+var FileDirectory string
+var SaveDir string
+var AppName = "pixelizer"
+
 func main() {
 	if len(os.Args) < 2 || os.Args[1] == "man" || os.Args[1] == "help" {
-		log.Print("Use : " + os.Args[0] + " [1] [2] [3] [4]")
-		log.Print("1 : Name of the file")
-		log.Print("2 : Pixelization level")
-		log.Print("3 : Optional - Number of results with increasing pixelization")
-		log.Print("4 : Optional - Pixelization level increase between each result")
+		printManual()
 		return
 	}
+	initLogLevel()
 	mainParam := os.Args[1]
+
 	if mainParam == "clear" {
+		setSaveDir()
+		readAndGetParams()
+		setPreviousWorkingDirectory()
+		addWorkingDirToArgs()
+		setFileDirectory()
 		clearResults()
 	} else if mainParam == "redo" {
-		img, min, count, increase := readAndGetParams()
-		f, err := os.Open(img)
-		if err != nil {
-			log.Print("Cannot find this file.")
+		setSaveDir()
+		readAndGetParams()
+		setPreviousWorkingDirectory()
+		addWorkingDirToArgs()
+		setFileDirectory()
+		img := os.Args[1]
+		min := param(2)
+		count := param(3)
+		increase := param(4)
+		f, errOpenImg := os.Open(FileDirectory + getNameOfFile(img))
+		logIfExists(errOpenImg)
+		if errOpenImg != nil {
 			return
 		}
 		launchPixellisator(f, min, count, increase)
 	} else {
-		f, err := os.Open(mainParam)
-		if err != nil {
-			log.Print("Cannot find this file.")
+		setDirVariables()
+		os.Args = append(os.Args, WorkingDirectory)
+		f, errOpenImage := os.Open(mainParam)
+		logIfExists(errOpenImage)
+		if errOpenImage != nil {
 			return
 		}
 		defer f.Close()
@@ -38,6 +55,6 @@ func main() {
 		count := param(3)
 		increase := param(4)
 		launchPixellisator(f, min, count, increase)
-		save(min, count, increase)
+		save()
 	}
 }

@@ -1,34 +1,36 @@
 package main
 
 import (
-	"fmt"
-	"log"
 	"os"
 )
 
 func clearResults() {
-	dirRead, err := os.Open(".")
-	if err != nil {
-		log.Print("Cannot open directory")
-	}
-	dirFiles, err := dirRead.Readdir(0)
-	if err != nil {
-		log.Print("Cannot read directory")
-	}
+	logIfVerbose(DEBUG, "clearResults")
+	removeFilesInDir(FileDirectory, ResultName)
+	removeFilesInDir(SaveDir, TerminalPrintName)
+}
+
+func removeFilesInDir(dir string, filesPrefix string) {
+	logIfVerbose(DEBUG, "removeFilesInDir[ %v / %v ]", dir, filesPrefix)
+	dirRead, errOpenDir := os.Open(dir)
+	logIfExists(errOpenDir)
+	dirFiles, errReadDir := dirRead.Readdir(0)
+	logIfExists(errReadDir)
 	for index := range dirFiles {
-		fileHere := dirFiles[index]
-
-		name := fileHere.Name()
-
+		fileInDir := dirFiles[index]
+		name := fileInDir.Name()
 		isSame := true
-		for i := range ResultName {
-			if name[i] != ResultName[i] {
+		for i := range filesPrefix {
+			if len(name) < len(filesPrefix) || name[i] != filesPrefix[i] {
 				isSame = false
 			}
 		}
 		if isSame {
-			os.Remove(name)
-			fmt.Println("Removed file:", name)
+			errRemoveFile := os.Remove(dir + name)
+			logIfExists(errRemoveFile)
+			if errRemoveFile == nil {
+				logIfVerbose(DEBUG, "Removed file: %v", name)
+			}
 		}
 	}
 }

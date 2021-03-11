@@ -10,9 +10,9 @@ import (
 )
 
 const (
-	NONE  = iota
-	DEBUG = iota
-	INFO  = iota
+	NONE = iota
+	DEBUG
+	INFO
 )
 
 var LogLevel = NONE

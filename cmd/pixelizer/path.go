@@ -3,7 +3,10 @@ package main
 import (
 	"os"
 	"os/user"
+	"path/filepath"
 	"strings"
+
+	"github.com/sirupsen/logrus"
 )
 
 func setDirVariables() {
@@ -65,16 +68,21 @@ func getNameOfFile(filePath string) string {
 	split := strings.Split(filePath, "/")
 	if len(split)-1 >= 0 {
 		return split[len(split)-1]
-	} else {
-		return split[0]
 	}
+
+	return split[0]
+
 }
 
 func setSaveDir() {
 	logIfVerbose(DEBUG, "setSaveDir")
-	usr, errGetUser := user.Current()
-	logIfExists(errGetUser)
-	SaveDir = usr.HomeDir + "/" + AppName + "/"
+	usr, err := user.Current()
+	if err != nil {
+		logrus.Error(err)
+	}
+
+	SaveDir = filepath.Join(usr.HomeDir, appname)
+
 	createPixelizerDir()
 }
 

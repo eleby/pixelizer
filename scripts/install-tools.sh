@@ -13,7 +13,3 @@ export GO111MODULE=on
 go generate -tags=tools ./...
 
 cd - || exit 1
-
-
-
-

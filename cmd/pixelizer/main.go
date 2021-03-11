@@ -4,57 +4,82 @@ import (
 	_ "image/jpeg"
 	_ "image/png"
 	"os"
+
+	log "github.com/sirupsen/logrus"
 )
 
-var WorkingDirectory string
-var FileDirectory string
-var SaveDir string
-var AppName = "pixelizer"
+var (
+	workingDirectory string
+	fileDirectory    string
+	saveDir          string
+)
 
 func main() {
+	printVersion()
+
 	if len(os.Args) < 2 || os.Args[1] == "man" || os.Args[1] == "help" {
 		printManual()
 		return
 	}
+
 	initLogLevel()
+
 	mainParam := os.Args[1]
 
-	if mainParam == "clear" {
+	switch mainParam {
+	case "clear":
 		setSaveDir()
 		readAndGetParams()
 		setPreviousWorkingDirectory()
 		addWorkingDirToArgs()
 		setFileDirectory()
 		clearResults()
-	} else if mainParam == "redo" {
+	case "redo":
 		setSaveDir()
 		readAndGetParams()
 		setPreviousWorkingDirectory()
 		addWorkingDirToArgs()
 		setFileDirectory()
+
 		img := os.Args[1]
 		min := param(2)
 		count := param(3)
 		increase := param(4)
-		f, errOpenImg := os.Open(FileDirectory + getNameOfFile(img))
-		logIfExists(errOpenImg)
-		if errOpenImg != nil {
+
+		f, err := os.Open(fileDirectory + getNameOfFile(img))
+		if err != nil {
+			log.Error(err)
 			return
 		}
-		launchPixellisator(f, min, count, increase)
-	} else {
+
+		if err := launchPixellisator(f, min, count, increase); err != nil {
+			log.Error(err)
+			return
+		}
+
+	default:
 		setDirVariables()
-		os.Args = append(os.Args, WorkingDirectory)
-		f, errOpenImage := os.Open(mainParam)
-		logIfExists(errOpenImage)
-		if errOpenImage != nil {
+
+		os.Args = append(os.Args, workingDirectory)
+
+		f, err := os.Open(mainParam)
+		if err != nil {
+			log.Error(err)
+
 			return
 		}
+
 		defer f.Close()
+
 		min := param(2)
 		count := param(3)
 		increase := param(4)
-		launchPixellisator(f, min, count, increase)
+
+		if err := launchPixellisator(f, min, count, increase); err != nil {
+			log.Error(err)
+			return
+		}
+
 		save()
 	}
 }

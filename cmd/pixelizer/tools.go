@@ -6,8 +6,8 @@ import (
 
 func clearResults() {
 	logIfVerbose(DEBUG, "clearResults")
-	removeFilesInDir(FileDirectory, ResultName)
-	removeFilesInDir(SaveDir, TerminalPrintName)
+	removeFilesInDir(fileDirectory, resultName)
+	removeFilesInDir(saveDir, terminalPrintName)
 }
 
 func removeFilesInDir(dir string, filesPrefix string) {

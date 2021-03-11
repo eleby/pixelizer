@@ -3,7 +3,10 @@ package main
 import (
 	"os"
 	"os/user"
+	"path/filepath"
 	"strings"
+
+	"github.com/sirupsen/logrus"
 )
 
 func setDirVariables() {
@@ -18,26 +21,26 @@ func setFileDirectory() {
 	logIfVerbose(DEBUG, "setFileDirectory")
 	imageDir := getPathOf(os.Args[1])
 	if imageDir[0] == '/' {
-		FileDirectory = imageDir
+		fileDirectory = imageDir
 	} else {
-		FileDirectory = WorkingDirectory + imageDir
+		fileDirectory = workingDirectory + imageDir
 	}
 }
 
 func setPreviousWorkingDirectory() {
 	logIfVerbose(DEBUG, "setPreviousWorkingDirectory")
-	WorkingDirectory = os.Args[len(os.Args)-1]
+	workingDirectory = os.Args[len(os.Args)-1]
 }
 
 func setWorkingDirectory() {
 	logIfVerbose(DEBUG, "setWorkingDirectory")
 	var errGettingPath error
-	WorkingDirectory, errGettingPath = os.Getwd()
+	workingDirectory, errGettingPath = os.Getwd()
 	logIfExists(errGettingPath)
 	if errGettingPath != nil {
 		return
 	}
-	WorkingDirectory += "/"
+	workingDirectory += "/"
 }
 
 func getPathOf(filePath string) string {
@@ -65,28 +68,33 @@ func getNameOfFile(filePath string) string {
 	split := strings.Split(filePath, "/")
 	if len(split)-1 >= 0 {
 		return split[len(split)-1]
-	} else {
-		return split[0]
 	}
+
+	return split[0]
+
 }
 
 func setSaveDir() {
 	logIfVerbose(DEBUG, "setSaveDir")
-	usr, errGetUser := user.Current()
-	logIfExists(errGetUser)
-	SaveDir = usr.HomeDir + "/" + AppName + "/"
+	usr, err := user.Current()
+	if err != nil {
+		logrus.Error(err)
+	}
+
+	saveDir = filepath.Join(usr.HomeDir, appname)
+
 	createPixelizerDir()
 }
 
 func addWorkingDirToArgs() {
 	logIfVerbose(DEBUG, "addWorkingDirToArgs")
-	os.Args = append(os.Args, WorkingDirectory)
+	os.Args = append(os.Args, workingDirectory)
 }
 
 func createPixelizerDir() {
 	logIfVerbose(DEBUG, "createPixelizerDir")
-	_, err := os.Stat(SaveDir)
+	_, err := os.Stat(saveDir)
 	if err != nil {
-		os.Mkdir(SaveDir, os.ModePerm)
+		os.Mkdir(saveDir, os.ModePerm)
 	}
 }

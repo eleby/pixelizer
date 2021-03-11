@@ -10,11 +10,15 @@ import (
 )
 
 const (
-	NONE  = iota
-	DEBUG = iota
-	INFO  = iota
+	// NONE means no log level set.
+	NONE = iota
+	// DEBUG means debug log level.
+	DEBUG
+	// INFO means info log level.
+	INFO
 )
 
+// LogLevel is level of log output.
 var LogLevel = NONE
 
 func param(index int) int {

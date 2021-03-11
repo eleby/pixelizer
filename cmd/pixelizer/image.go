@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"image/color/palette"
@@ -9,17 +10,20 @@ import (
 	"image/png"
 	"os"
 	"strconv"
+
+	log "github.com/sirupsen/logrus"
 )
 
+// GifDelayEachFrame is a delay between each gif frame.
 const GifDelayEachFrame = 20
 
-func launchPixellisator(f *os.File, min int, count int, increase int) {
+func launchPixellisator(f *os.File, min int, count int, increase int) error {
 	logIfVerbose(DEBUG, "launchPixellisator[ %v / %v / %v / %v ]", f.Name(), min, count, increase)
-	img, _, errImageDecode := image.Decode(f)
-	logIfExists(errImageDecode)
-	if errImageDecode != nil {
-		return
+	img, _, err := image.Decode(f)
+	if err != nil {
+		return fmt.Errorf("image decode: %w", err)
 	}
+
 	b := img.Bounds()
 	minX := b.Min.X
 	minY := b.Min.Y
@@ -35,35 +39,52 @@ func launchPixellisator(f *os.File, min int, count int, increase int) {
 		if count > 1 {
 			name = "result" + strconv.Itoa(i+1) + ".png"
 		}
-		out, errOutput := os.Create(FileDirectory + name)
-		logIfExists(errOutput)
-		errOutputEncode := png.Encode(out, newImg)
-		logIfExists(errOutputEncode)
+		out, err := os.Create(fileDirectory + name)
+		if err != nil {
+			log.Error(err)
+		}
+
+		if err := png.Encode(out, newImg); err != nil {
+			log.Error(err)
+		}
+
 		if hasParam("gif") && !hasParam("pixel") {
 			addToGif(&gifImg, newImg)
 		}
+
 		if hasParam("print") {
 			printInTerminal(newImg, min+(i*increase), i)
 		}
+
 		if i+1 == count && hasParam("gif") && !hasParam("pixel") {
 			if hasParam("reverse") {
 				reverseGif(&gifImg)
 			}
+
 			if hasParam("full") {
 				addReverseToGif(&gifImg)
 			}
-			gifOutput, errGif := os.Create(FileDirectory + "results.gif")
-			logIfExists(errGif)
-			errGifEncode := gif.EncodeAll(gifOutput, &gifImg)
-			logIfExists(errGifEncode)
+
+			gifOutput, err := os.Create(fileDirectory + "results.gif")
+			if err != nil {
+				log.Error(err)
+			}
+
+			if err := gif.EncodeAll(gifOutput, &gifImg); err != nil {
+				log.Error(err)
+			}
 		}
 	}
+
+	return nil
 }
 
 func repixellise(img image.Image, pointMin image.Point, pointMax image.Point, pixelization int) image.Image {
 	logIfVerbose(DEBUG, "repixellise[ %v / %v / %v ]", pointMin, pointMax, pixelization)
+
 	i := 0
 	j := 0
+
 	var result *image.RGBA
 
 	if hasParam("pixel") {
@@ -72,6 +93,7 @@ func repixellise(img image.Image, pointMin image.Point, pointMax image.Point, pi
 	} else {
 		result = image.NewRGBA(image.Rectangle{Min: pointMin, Max: pointMax})
 	}
+
 	for y := pointMin.Y; y < pointMax.Y; y += pixelization {
 		for x := pointMin.X; x < pointMax.X; x += pixelization {
 			colorRGBA := avg(img, x, y, pixelization)
@@ -85,11 +107,13 @@ func repixellise(img image.Image, pointMin image.Point, pointMax image.Point, pi
 		i = 0
 		j++
 	}
+
 	return result
 }
 
 func avg(img image.Image, x int, y int, count int) color.RGBA {
 	logIfVerbose(INFO, "avg[ { %v ; %v } / %v ]", x, y, count)
+
 	total := count * count
 
 	r := 0
@@ -140,6 +164,7 @@ func addToGif(gifImg *gif.GIF, img image.Image) {
 
 func addReverseToGif(gifImg *gif.GIF) {
 	logIfVerbose(DEBUG, "addReverseToGif")
+
 	for i := len(gifImg.Image) - 2; i > 0; i-- {
 		gifImg.Image = append(gifImg.Image, gifImg.Image[i])
 		gifImg.Delay = append(gifImg.Delay, GifDelayEachFrame)
@@ -148,9 +173,12 @@ func addReverseToGif(gifImg *gif.GIF) {
 
 func reverseGif(gifImg *gif.GIF) {
 	logIfVerbose(DEBUG, "reverseGif")
-	var images []*image.Paletted
+
+	var images = make([]*image.Paletted, 0, len(gifImg.Image))
+
 	for i := len(gifImg.Image) - 1; i >= 0; i-- {
 		images = append(images, gifImg.Image[i])
 	}
+
 	gifImg.Image = images
 }

@@ -8,9 +8,11 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var WorkingDirectory string
-var FileDirectory string
-var SaveDir string
+var (
+	workingDirectory string
+	fileDirectory    string
+	saveDir          string
+)
 
 func main() {
 	printVersion()
@@ -44,7 +46,7 @@ func main() {
 		count := param(3)
 		increase := param(4)
 
-		f, err := os.Open(FileDirectory + getNameOfFile(img))
+		f, err := os.Open(fileDirectory + getNameOfFile(img))
 		if err != nil {
 			log.Error(err)
 			return
@@ -58,7 +60,7 @@ func main() {
 	default:
 		setDirVariables()
 
-		os.Args = append(os.Args, WorkingDirectory)
+		os.Args = append(os.Args, workingDirectory)
 
 		f, err := os.Open(mainParam)
 		if err != nil {

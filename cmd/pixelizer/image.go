@@ -14,6 +14,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// GifDelayEachFrame is a delay between each gif frame.
 const GifDelayEachFrame = 20
 
 func launchPixellisator(f *os.File, min int, count int, increase int) error {
@@ -38,7 +39,7 @@ func launchPixellisator(f *os.File, min int, count int, increase int) error {
 		if count > 1 {
 			name = "result" + strconv.Itoa(i+1) + ".png"
 		}
-		out, err := os.Create(FileDirectory + name)
+		out, err := os.Create(fileDirectory + name)
 		if err != nil {
 			log.Error(err)
 		}
@@ -64,7 +65,7 @@ func launchPixellisator(f *os.File, min int, count int, increase int) error {
 				addReverseToGif(&gifImg)
 			}
 
-			gifOutput, err := os.Create(FileDirectory + "results.gif")
+			gifOutput, err := os.Create(fileDirectory + "results.gif")
 			if err != nil {
 				log.Error(err)
 			}

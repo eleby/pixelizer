@@ -6,13 +6,15 @@ import (
 	"strings"
 )
 
-const ResultName = "result"
-const SaveName = "log"
-const TerminalPrintName = "print"
+const (
+	resultName        = "result"
+	saveName          = "log"
+	terminalPrintName = "print"
+)
 
 func save() {
 	logIfVerbose(DEBUG, "save")
-	f, errCreateFile := os.Create(SaveDir + SaveName)
+	f, errCreateFile := os.Create(saveDir + saveName)
 	logIfExists(errCreateFile)
 	defer f.Close()
 	strSave := ""
@@ -28,8 +30,8 @@ func save() {
 
 func saveStr(str string, suffix string) {
 	logIfVerbose(DEBUG, "saveStr")
-	logIfVerbose(INFO, "Saving color codes to "+SaveDir+TerminalPrintName+suffix+".log")
-	f, errCreateFile := os.Create(SaveDir + "/" + TerminalPrintName + suffix + ".log")
+	logIfVerbose(INFO, "Saving color codes to "+saveDir+terminalPrintName+suffix+".log")
+	f, errCreateFile := os.Create(saveDir + "/" + terminalPrintName + suffix + ".log")
 	logIfExists(errCreateFile)
 	defer f.Close()
 	f.Write([]byte(str))
@@ -37,7 +39,7 @@ func saveStr(str string, suffix string) {
 
 func readAndGetParams() {
 	logIfVerbose(DEBUG, "readAndGetParams")
-	f, errOpenSaveDir := os.Open(SaveDir + SaveName)
+	f, errOpenSaveDir := os.Open(saveDir + saveName)
 	logIfExists(errOpenSaveDir)
 	scanner := bufio.NewScanner(f)
 	scanner.Scan()
